@@ -1,10 +1,16 @@
 #!/bin/sh
 set -e
 
-ZIG_BIN="/usr/lib/zig/ZIG_VERSION/zig"
+ZIG_BIN="/usr/lib/zls/ZIG_VERSION/zls"
 
 if [ -x "$ZIG_BIN" ]; then
-    update-alternatives --install /usr/bin/zig zig "$ZIG_BIN" 100
+    update-alternatives --install /usr/bin/zls zls "$ZIG_BIN" 100
+fi
+
+ZLS_BIN="/usr/lib/zig/ZIG_VERSION/zls"
+
+if [ -x "$ZLS_BIN" ]; then
+    update-alternatives --install /usr/bin/zls zls "$ZLS_BIN" 100
 fi
 
 exit 0

@@ -26,7 +26,7 @@ Currently supported debian distros are:
 
 This is an unofficial community project to provide a package that's easy to
 install on Debian. If you're looking for the Zig source code, see
-[ziglang/zig](https://github.com/zig-org/zig).
+[ziglang/zig](https://github.com/ziglang/zig).
 
 ## Install/Update
 
