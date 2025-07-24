@@ -7,11 +7,5 @@ if [ -f "$ZIG_BIN" ]; then
     update-alternatives --install /usr/bin/zig zig "$ZIG_BIN" 100
 fi
 
-ZLS_BIN="/usr/lib/zls/ZIG_VERSION/zls"
-
-if [ -f "$ZLS_BIN" ]; then
-    update-alternatives --install /usr/bin/zls zls "$ZLS_BIN" 100
-fi
-
 exit 0
 
