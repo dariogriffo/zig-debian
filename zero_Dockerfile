@@ -53,6 +53,6 @@ RUN pandoc -s -t man -o /output/usr/share/man/man1/zig.1 /output/usr/share/man/m
 RUN rm /output/usr/share/man/man1/zig.md
 RUN gzip -n -9 /output/usr/share/man/man1/zig.1
 
-RUN dpkg-deb --build /output /zig_${FULL_VERSION}.deb
+RUN dpkg-deb --build /output /zig-zero_${FULL_VERSION}.deb
 
 
