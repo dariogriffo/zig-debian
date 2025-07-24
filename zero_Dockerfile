@@ -17,16 +17,16 @@ RUN mkdir -p /output/DEBIAN
 RUN mkdir -p /output/usr/share/doc/zig/
 RUN mkdir -p /output/usr/share/man/man1/
 
-COPY output/DEBIAN/control /output/DEBIAN/
-COPY output/DEBIAN/postinst /output/DEBIAN/
-COPY output/DEBIAN/prerm /output/DEBIAN/
-COPY output/DEBIAN/postrm /output/DEBIAN/
+COPY packages/zero/output/DEBIAN/control /output/DEBIAN/
+COPY packages/zero/output/DEBIAN/postinst /output/DEBIAN/
+COPY packages/zero/output/DEBIAN/prerm /output/DEBIAN/
+COPY packages/zero/output/DEBIAN/postrm /output/DEBIAN/
 RUN chmod 755 /output/DEBIAN/postinst
 RUN chmod 755 /output/DEBIAN/prerm
 RUN chmod 755 /output/DEBIAN/postrm
 
-COPY output/changelog.Debian /output/usr/share/doc/zig/changelog.Debian
-COPY output/copyright /output/usr/share/doc/zig/
+COPY packages/zero/output/changelog.Debian /output/usr/share/doc/zig/changelog.Debian
+COPY packages/zero/output/copyright /output/usr/share/doc/zig/
 
 RUN sed -i "s/DIST/$DEBIAN_DIST/" /output/usr/share/doc/zig/changelog.Debian
 RUN sed -i "s/BUILD_VERSION/$BUILD_VERSION/" /output/usr/share/doc/zig/changelog.Debian

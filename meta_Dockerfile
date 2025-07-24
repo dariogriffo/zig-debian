@@ -1,0 +1,19 @@
+ARG DEBIAN_DIST=bookworm
+FROM debian:$DEBIAN_DIST
+
+ARG ZIG_VERSION
+ARG DEBIAN_DIST
+ARG BUILD_VERSION
+ARG FULL_VERSION
+
+RUN mkdir -p /output/DEBIAN
+
+COPY packages/zig/output/DEBIAN/control /output/DEBIAN/
+
+RUN sed -i "s/DIST/$DEBIAN_DIST/" /output/DEBIAN/control
+RUN sed -i "s/BUILD_VERSION/$BUILD_VERSION/" /output/DEBIAN/control
+RUN sed -i "s/ZIG_VERSION/$ZIG_VERSION/" /output/DEBIAN/control
+
+RUN dpkg-deb --build /output /zig.deb
+
+

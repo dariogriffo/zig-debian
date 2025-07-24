@@ -1,0 +1,9 @@
+Section: devel
+Priority: optional
+Maintainer: Dario Griffo <dariogriffo@gmail.com>
+Homepage: https://ziglang.org/
+Package: zig-0
+Version: BUILD_VERSION+DIST
+Architecture: amd64
+Depends:
+Description: This Zig programming language 0.x
