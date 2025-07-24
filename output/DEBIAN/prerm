@@ -1,0 +1,9 @@
+#!/bin/sh
+set -e
+
+ZIG_BIN="/usr/lib/zig/ZIG_VERSION/zig"
+
+update-alternatives --remove zig "$ZIG_BIN" || true
+
+exit 0
+

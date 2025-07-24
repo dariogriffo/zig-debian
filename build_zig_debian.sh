@@ -1,6 +1,6 @@
 ZIG_VERSION=$1
 BUILD_VERSION=$2
-declare -a arr=("bookworm" "trixie" "sid")
+declare -a arr=("bookworm")
 for i in "${arr[@]}"
 do
   DEBIAN_DIST=$i
@@ -10,5 +10,3 @@ do
   docker cp $id:/zig_$FULL_VERSION.deb - > ./zig_$FULL_VERSION.deb
   tar -xf ./zig_$FULL_VERSION.deb
 done
-
-  

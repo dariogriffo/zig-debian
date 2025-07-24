@@ -1,11 +1,9 @@
-Source: zig
 Section: devel
 Priority: optional
 Maintainer: Dario Griffo <dariogriffo@gmail.com>
 Homepage: https://ziglang.org/
-Package: zig
+Package: zig-ZIG_VERSION
 Version: BUILD_VERSION+DIST
 Architecture: amd64
 Depends:
-Conflicts: zig-master
 Description: Zig is a general-purpose programming language and toolchain for maintaining robust, optimal and reusable software.
