@@ -5,5 +5,5 @@ Homepage: https://ziglang.org/
 Package: zig
 Version: BUILD_VERSION+DIST
 Architecture: amd64
-Depends: zig-ZIG_VERSION
+Depends: zig-0
 Description: Zig is a general-purpose programming language and toolchain for maintaining robust, optimal and reusable software.
