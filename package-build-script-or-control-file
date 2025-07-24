@@ -1,9 +1,0 @@
-# ...existing code...
-install -Dm755 zig "$DESTDIR/usr/bin/zig-0.14.0"
-# ...existing code...
-
-chmod 755 "$DESTDIR/DEBIAN/postinst"
-chmod 755 "$DESTDIR/DEBIAN/prerm"
-chmod 755 "$DESTDIR/DEBIAN/postrm"
-
-# Do not install directly as /usr/bin/zig
