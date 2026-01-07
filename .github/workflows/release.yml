@@ -18,18 +18,25 @@ permissions:
 jobs:
   build-zig:
     name: Build
-    runs-on: ubuntu-latest    
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            arch: amd64
+          - runner: ubuntu-24.04-arm
+            arch: arm64
     steps:
       - name: Checkout zig-debian
         uses: actions/checkout@v4
 
       - name: Build zig
-        run: ./build_zig_debian.sh ${{ inputs.zig_version }} ${{ inputs.build_version }}
+        run: ./build_zig_debian.sh ${{ inputs.zig_version }} ${{ inputs.build_version }} ${{ matrix.arch }}
       
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: artifact
+          name: artifact-${{ matrix.arch }}
           path:  |
             zig-zero_*.deb
             zig_*.deb
@@ -43,8 +50,6 @@ jobs:
     steps:
       - name: Download All Artifacts
         uses: actions/download-artifact@v4
-        with:
-          name: artifact
 
       - name: Publish Release Draft
         uses: softprops/action-gh-release@v2

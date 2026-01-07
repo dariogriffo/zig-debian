@@ -5,6 +5,8 @@ ARG ZIG_VERSION
 ARG DEBIAN_DIST
 ARG BUILD_VERSION
 ARG FULL_VERSION
+ARG DEBIAN_ARCH
+ARG ZIG_ARCH
 
 RUN mkdir -p /output/DEBIAN
 
@@ -13,6 +15,7 @@ COPY packages/zig/output/DEBIAN/control /output/DEBIAN/
 RUN sed -i "s/DIST/$DEBIAN_DIST/" /output/DEBIAN/control
 RUN sed -i "s/BUILD_VERSION/$BUILD_VERSION/" /output/DEBIAN/control
 RUN sed -i "s/ZIG_VERSION/$ZIG_VERSION/" /output/DEBIAN/control
+RUN sed -i "s/DEBIAN_ARCH/$DEBIAN_ARCH/" /output/DEBIAN/control
 
 RUN dpkg-deb --build /output /zig_$FULL_VERSION.deb
 
