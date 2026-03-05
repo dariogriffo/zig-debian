@@ -4,6 +4,6 @@ Maintainer: Dario Griffo <dariogriffo@gmail.com>
 Homepage: https://ziglang.org/
 Package: zig-0
 Version: ZIG_VERSION-BUILD_VERSION+DIST
-Architecture: amd64
+Architecture: ARCH
 Depends:
 Description: This Zig programming language 0.x
