@@ -15,8 +15,9 @@ on:
         description: The target architecture.
         type: choice
         required: true
-        default: amd64
+        default: all
         options:
+          - all
           - amd64
           - arm64
           - armel
@@ -25,7 +26,6 @@ on:
           - i386
           - loong64
           - s390x
-          - all
 
 permissions:
   contents: write
