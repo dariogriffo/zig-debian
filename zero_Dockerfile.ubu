@@ -1,8 +1,7 @@
-ARG DEBIAN_DIST=bookworm
 FROM debian:trixie
 
 ARG ZIG_VERSION
-ARG DEBIAN_DIST
+ARG UBUNTU_DIST
 ARG BUILD_VERSION
 ARG FULL_VERSION
 
@@ -28,23 +27,23 @@ RUN chmod 755 /output/DEBIAN/postrm
 COPY packages/zero/output/changelog.Debian /output/usr/share/doc/zig/changelog.Debian
 COPY packages/zero/output/copyright /output/usr/share/doc/zig/
 
-RUN sed -i "s/DIST/$DEBIAN_DIST/" /output/usr/share/doc/zig/changelog.Debian
+RUN sed -i "s/DIST/$UBUNTU_DIST/" /output/usr/share/doc/zig/changelog.Debian
 RUN sed -i "s/BUILD_VERSION/$BUILD_VERSION/" /output/usr/share/doc/zig/changelog.Debian
 RUN sed -i "s/ZIG_VERSION/$ZIG_VERSION/" /output/usr/share/doc/zig/changelog.Debian
 
-RUN sed -i "s/DIST/$DEBIAN_DIST/" /output/DEBIAN/control
+RUN sed -i "s/DIST/$UBUNTU_DIST/" /output/DEBIAN/control
 RUN sed -i "s/BUILD_VERSION/$BUILD_VERSION/" /output/DEBIAN/control
 RUN sed -i "s/ZIG_VERSION/$ZIG_VERSION/" /output/DEBIAN/control
 
-RUN sed -i "s/DIST/$DEBIAN_DIST/" /output/DEBIAN/postinst
+RUN sed -i "s/DIST/$UBUNTU_DIST/" /output/DEBIAN/postinst
 RUN sed -i "s/BUILD_VERSION/$BUILD_VERSION/" /output/DEBIAN/postinst
 RUN sed -i "s/ZIG_VERSION/$ZIG_VERSION/" /output/DEBIAN/postinst
 
-RUN sed -i "s/DIST/$DEBIAN_DIST/" /output/DEBIAN/prerm
+RUN sed -i "s/DIST/$UBUNTU_DIST/" /output/DEBIAN/prerm
 RUN sed -i "s/BUILD_VERSION/$BUILD_VERSION/" /output/DEBIAN/prerm
 RUN sed -i "s/ZIG_VERSION/$ZIG_VERSION/" /output/DEBIAN/prerm
 
-RUN sed -i "s/DIST/$DEBIAN_DIST/" /output/DEBIAN/postrm
+RUN sed -i "s/DIST/$UBUNTU_DIST/" /output/DEBIAN/postrm
 RUN sed -i "s/BUILD_VERSION/$BUILD_VERSION/" /output/DEBIAN/postrm
 RUN sed -i "s/ZIG_VERSION/$ZIG_VERSION/" /output/DEBIAN/postrm
 
