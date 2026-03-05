@@ -1,58 +1,49 @@
 FROM debian:trixie
 
+# Only arch-specific args before the expensive steps — keeps these layers cached across distros
 ARG ZIG_VERSION
-ARG UBUNTU_DIST
-ARG BUILD_VERSION
-ARG FULL_VERSION
-ARG ARCH=amd64
 ARG ZIG_ARCH=x86_64
 
-RUN apt update && apt install -y build-essential pandoc python3-html2text wget
-RUN wget -q "https://ziglang.org/download/$ZIG_VERSION/zig-$ZIG_ARCH-linux-$ZIG_VERSION.tar.xz" && tar -xf "zig-$ZIG_ARCH-linux-$ZIG_VERSION.tar.xz" -C /opt && rm "zig-$ZIG_ARCH-linux-$ZIG_VERSION.tar.xz"
+RUN apt update && apt install -y build-essential pandoc python3-html2text
+
+# Pre-extracted on host (once per arch, before parallel distro builds)
+COPY zig-${ZIG_ARCH}-linux-${ZIG_VERSION} /opt/zig-${ZIG_ARCH}-linux-${ZIG_VERSION}
 
 RUN mkdir -p /output/usr/lib/zig/$ZIG_VERSION
 RUN cp "/opt/zig-$ZIG_ARCH-linux-$ZIG_VERSION/zig" /output/usr/lib/zig/$ZIG_VERSION/
 RUN cp -r "/opt/zig-$ZIG_ARCH-linux-$ZIG_VERSION/lib" /output/usr/lib/zig/$ZIG_VERSION/
 
-RUN mkdir -p /output/DEBIAN
-RUN mkdir -p /output/usr/share/doc/zig/
-RUN mkdir -p /output/usr/share/man/man1/
-
-COPY packages/zero/output/DEBIAN/control /output/DEBIAN/
-COPY packages/zero/output/DEBIAN/postinst /output/DEBIAN/
-COPY packages/zero/output/DEBIAN/prerm /output/DEBIAN/
-COPY packages/zero/output/DEBIAN/postrm /output/DEBIAN/
-RUN chmod 755 /output/DEBIAN/postinst
-RUN chmod 755 /output/DEBIAN/prerm
-RUN chmod 755 /output/DEBIAN/postrm
-
-COPY packages/zero/output/changelog.Debian /output/usr/share/doc/zig/changelog.Debian
-COPY packages/zero/output/copyright /output/usr/share/doc/zig/
-
-RUN sed -i "s/DIST/$UBUNTU_DIST/" /output/usr/share/doc/zig/changelog.Debian
-RUN sed -i "s/BUILD_VERSION/$BUILD_VERSION/" /output/usr/share/doc/zig/changelog.Debian
-RUN sed -i "s/ZIG_VERSION/$ZIG_VERSION/" /output/usr/share/doc/zig/changelog.Debian
-
-RUN sed -i "s/DIST/$UBUNTU_DIST/" /output/DEBIAN/control
-RUN sed -i "s/BUILD_VERSION/$BUILD_VERSION/" /output/DEBIAN/control
-RUN sed -i "s/ZIG_VERSION/$ZIG_VERSION/" /output/DEBIAN/control
-RUN sed -i "s/Architecture: ARCH/Architecture: $ARCH/" /output/DEBIAN/control
-
-RUN sed -i "s/DIST/$UBUNTU_DIST/" /output/DEBIAN/postinst
-RUN sed -i "s/BUILD_VERSION/$BUILD_VERSION/" /output/DEBIAN/postinst
-RUN sed -i "s/ZIG_VERSION/$ZIG_VERSION/" /output/DEBIAN/postinst
-
-RUN sed -i "s/DIST/$UBUNTU_DIST/" /output/DEBIAN/prerm
-RUN sed -i "s/BUILD_VERSION/$BUILD_VERSION/" /output/DEBIAN/prerm
-RUN sed -i "s/ZIG_VERSION/$ZIG_VERSION/" /output/DEBIAN/prerm
-
-RUN sed -i "s/DIST/$UBUNTU_DIST/" /output/DEBIAN/postrm
-RUN sed -i "s/BUILD_VERSION/$BUILD_VERSION/" /output/DEBIAN/postrm
-RUN sed -i "s/ZIG_VERSION/$ZIG_VERSION/" /output/DEBIAN/postrm
+RUN mkdir -p /output/DEBIAN /output/usr/share/doc/zig /output/usr/share/man/man1
 
 RUN html2markdown "/opt/zig-$ZIG_ARCH-linux-$ZIG_VERSION/doc/langref.html" > /output/usr/share/man/man1/zig.md
 RUN pandoc -s -t man -o /output/usr/share/man/man1/zig.1 /output/usr/share/man/man1/zig.md
 RUN rm /output/usr/share/man/man1/zig.md
 RUN gzip -n -9 /output/usr/share/man/man1/zig.1
+
+# Distro-specific args go here — cache is intentionally invalidated per distro below this line
+ARG UBUNTU_DIST
+ARG BUILD_VERSION
+ARG FULL_VERSION
+ARG ARCH=amd64
+
+COPY packages/zero/output/DEBIAN/control /output/DEBIAN/
+COPY packages/zero/output/DEBIAN/postinst /output/DEBIAN/
+COPY packages/zero/output/DEBIAN/prerm /output/DEBIAN/
+COPY packages/zero/output/DEBIAN/postrm /output/DEBIAN/
+RUN chmod 755 /output/DEBIAN/postinst /output/DEBIAN/prerm /output/DEBIAN/postrm
+
+COPY packages/zero/output/changelog.Debian /output/usr/share/doc/zig/changelog.Debian
+COPY packages/zero/output/copyright /output/usr/share/doc/zig/
+
+RUN sed -i \
+    -e "s/DIST/$UBUNTU_DIST/g" \
+    -e "s/BUILD_VERSION/$BUILD_VERSION/g" \
+    -e "s/ZIG_VERSION/$ZIG_VERSION/g" \
+    /output/usr/share/doc/zig/changelog.Debian \
+    /output/DEBIAN/control \
+    /output/DEBIAN/postinst \
+    /output/DEBIAN/prerm \
+    /output/DEBIAN/postrm
+RUN sed -i "s/Architecture: ARCH/Architecture: $ARCH/" /output/DEBIAN/control
 
 RUN dpkg-deb --build /output /zig-zero_${FULL_VERSION}.deb

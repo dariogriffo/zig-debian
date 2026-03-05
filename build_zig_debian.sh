@@ -26,6 +26,46 @@ get_zig_arch() {
     esac
 }
 
+build_dist() {
+    local dist=$1
+    local build_arch=$2
+    local zig_arch=$3
+    local full_ver="$ZIG_VERSION-${BUILD_VERSION}+${dist}_${build_arch}"
+
+    echo "  [$dist] Building zig $full_ver"
+
+    if ! docker build . -t "zig-$dist-$build_arch" \
+        --build-arg ZIG_VERSION="$ZIG_VERSION" \
+        --build-arg DEBIAN_DIST="$dist" \
+        --build-arg BUILD_VERSION="$BUILD_VERSION" \
+        --build-arg FULL_VERSION="$full_ver" \
+        --build-arg ARCH="$build_arch" \
+        -f meta_Dockerfile; then
+        echo "❌ [$dist] Failed meta build"
+        return 1
+    fi
+    id="$(docker create "zig-$dist-$build_arch")"
+    docker cp "$id:/zig_$full_ver.deb" - > "./zig_$full_ver.deb"
+    tar -xf "./zig_$full_ver.deb"
+
+    if ! docker build . -t "zig-zero-$dist-$build_arch" \
+        --build-arg ZIG_VERSION="$ZIG_VERSION" \
+        --build-arg DEBIAN_DIST="$dist" \
+        --build-arg BUILD_VERSION="$BUILD_VERSION" \
+        --build-arg FULL_VERSION="$full_ver" \
+        --build-arg ARCH="$build_arch" \
+        --build-arg ZIG_ARCH="$zig_arch" \
+        -f zero_Dockerfile; then
+        echo "❌ [$dist] Failed zero build"
+        return 1
+    fi
+    id="$(docker create "zig-zero-$dist-$build_arch")"
+    docker cp "$id:/zig-zero_$full_ver.deb" - > "./zig-zero_$full_ver.deb"
+    tar -xf "./zig-zero_$full_ver.deb"
+
+    echo "  ✅ [$dist] Done"
+}
+
 build_architecture() {
     local build_arch=$1
     local zig_arch
@@ -39,41 +79,34 @@ build_architecture() {
 
     echo "Building for architecture: $build_arch using zig arch $zig_arch"
 
-    declare -a arr=("bookworm" "trixie" "forky" "sid")
+    # Download and extract once on the host before parallel distro builds.
+    # Extraction happens here (not inside Docker) to avoid concurrent writes to the same folder name.
+    local tarball="zig-${zig_arch}-linux-${ZIG_VERSION}.tar.xz"
+    if ! wget -q "https://ziglang.org/download/${ZIG_VERSION}/${tarball}" -O "$tarball"; then
+        echo "❌ Failed to download zig tarball for $build_arch"
+        return 1
+    fi
+    tar -xf "$tarball"
+    rm -f "$tarball"
 
-    for dist in "${arr[@]}"; do
-        FULL_VERSION="$ZIG_VERSION-${BUILD_VERSION}+${dist}_${build_arch}"
-        echo "  Building zig $FULL_VERSION"
-
-        if ! docker build . -t "zig-$dist-$build_arch" \
-            --build-arg ZIG_VERSION="$ZIG_VERSION" \
-            --build-arg DEBIAN_DIST="$dist" \
-            --build-arg BUILD_VERSION="$BUILD_VERSION" \
-            --build-arg FULL_VERSION="$FULL_VERSION" \
-            --build-arg ARCH="$build_arch" \
-            -f meta_Dockerfile; then
-            echo "❌ Failed to build Docker image for zig $dist on $build_arch"
-            return 1
-        fi
-        id="$(docker create "zig-$dist-$build_arch")"
-        docker cp "$id:/zig_$FULL_VERSION.deb" - > "./zig_$FULL_VERSION.deb"
-        tar -xf "./zig_$FULL_VERSION.deb"
-
-        if ! docker build . -t "zig-$dist-$build_arch" \
-            --build-arg ZIG_VERSION="$ZIG_VERSION" \
-            --build-arg DEBIAN_DIST="$dist" \
-            --build-arg BUILD_VERSION="$BUILD_VERSION" \
-            --build-arg FULL_VERSION="$FULL_VERSION" \
-            --build-arg ARCH="$build_arch" \
-            --build-arg ZIG_ARCH="$zig_arch" \
-            -f zero_Dockerfile; then
-            echo "❌ Failed to build Docker image for zig-zero $dist on $build_arch"
-            return 1
-        fi
-        id="$(docker create "zig-$dist-$build_arch")"
-        docker cp "$id:/zig-zero_$FULL_VERSION.deb" - > "./zig-zero_$FULL_VERSION.deb"
-        tar -xf "./zig-zero_$FULL_VERSION.deb"
+    # Build all distros in parallel
+    local pids=()
+    for dist in "bookworm" "trixie" "forky" "sid"; do
+        build_dist "$dist" "$build_arch" "$zig_arch" &
+        pids+=($!)
     done
+
+    local failed=0
+    for pid in "${pids[@]}"; do
+        wait "$pid" || failed=1
+    done
+
+    rm -rf "zig-${zig_arch}-linux-${ZIG_VERSION}"
+
+    if [ $failed -ne 0 ]; then
+        echo "❌ One or more distro builds failed for $build_arch"
+        return 1
+    fi
 
     echo "✅ Successfully built for $build_arch"
     return 0
@@ -83,9 +116,7 @@ if [ "$ARCH" = "all" ]; then
     echo "🚀 Building zig $ZIG_VERSION-$BUILD_VERSION for all supported architectures..."
     echo ""
 
-    ARCHITECTURES=("amd64" "arm64" "armel" "riscv64" "ppc64el" "i386" "loong64" "s390x")
-
-    for build_arch in "${ARCHITECTURES[@]}"; do
+    for build_arch in "amd64" "arm64" "armel" "riscv64" "ppc64el" "i386" "loong64" "s390x"; do
         echo "==========================================="
         echo "Building for architecture: $build_arch"
         echo "==========================================="
