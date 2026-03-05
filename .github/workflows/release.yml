@@ -39,7 +39,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build zig
-        run: ./build_zig_debian.sh ${{ inputs.zig_version }} ${{ inputs.build_version }} ${{ inputs.architecture }}
+        run: ./build.sh ${{ inputs.zig_version }} ${{ inputs.build_version }} ${{ inputs.architecture }}
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
