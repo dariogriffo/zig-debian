@@ -11,6 +11,21 @@ on:
         description: The build version.
         type: string
         required: true
+      architecture:
+        description: The target architecture.
+        type: choice
+        required: true
+        default: amd64
+        options:
+          - amd64
+          - arm64
+          - armel
+          - riscv64
+          - ppc64el
+          - i386
+          - loong64
+          - s390x
+          - all
 
 permissions:
   contents: write
@@ -18,14 +33,14 @@ permissions:
 jobs:
   build-zig:
     name: Build
-    runs-on: ubuntu-latest    
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout zig-debian
         uses: actions/checkout@v4
 
       - name: Build zig
-        run: ./build_zig_debian.sh ${{ inputs.zig_version }} ${{ inputs.build_version }}
-      
+        run: ./build_zig_debian.sh ${{ inputs.zig_version }} ${{ inputs.build_version }} ${{ inputs.architecture }}
+
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -56,4 +71,3 @@ jobs:
           name: ${{ inputs.zig_version }}+${{ inputs.build_version }}
           tag_name: ${{ env.RELEASE_TAG }}
           fail_on_unmatched_files: true
-
