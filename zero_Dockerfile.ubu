@@ -4,7 +4,7 @@ FROM debian:trixie
 ARG ZIG_VERSION
 ARG ZIG_ARCH=x86_64
 
-RUN apt update && apt install -y build-essential pandoc python3-html2text
+RUN DEBIAN_FRONTEND=noninteractive apt update && apt install -y build-essential pandoc python3-html2text
 
 # Pre-extracted on host (once per arch, before parallel distro builds)
 COPY zig-${ZIG_ARCH}-linux-${ZIG_VERSION} /opt/zig-${ZIG_ARCH}-linux-${ZIG_VERSION}
