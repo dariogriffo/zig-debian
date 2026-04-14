@@ -4,8 +4,8 @@ ARCH=${3:-amd64}
 
 if [ -z "$ZIG_VERSION" ] || [ -z "$BUILD_VERSION" ]; then
     echo "Usage: $0 <zig_version> <build_version> [architecture]"
-    echo "Example: $0 0.16.0-dev.2682+02142a54d 1 arm64"
-    echo "Example: $0 0.16.0-dev.2682+02142a54d 1 all    # Build for all architectures"
+    echo "Example: $0 1.0.0 1 arm64"
+    echo "Example: $0 1.0.0 1 all    # Build for all architectures"
     echo "Supported architectures: amd64, arm64, armel, riscv64, ppc64el, i386, loong64, s390x, all"
     exit 1
 fi
@@ -32,7 +32,7 @@ build_dist() {
     local zig_arch=$3
     local full_ver="$ZIG_VERSION-${BUILD_VERSION}+${dist}_${build_arch}"
 
-    echo "  [$dist] Building zig $full_ver"
+    echo "  [$dist] Building zig-stable $full_ver"
 
     if ! docker build . -t "zig-$dist-$build_arch" \
         --build-arg ZIG_VERSION="$ZIG_VERSION" \
@@ -47,21 +47,6 @@ build_dist() {
     id="$(docker create "zig-$dist-$build_arch")"
     docker cp "$id:/zig_$full_ver.deb" - > "./zig_$full_ver.deb"
     tar -xf "./zig_$full_ver.deb"
-
-    if ! docker build . -t "zig-stable-$dist-$build_arch" \
-        --build-arg ZIG_VERSION="$ZIG_VERSION" \
-        --build-arg DEBIAN_DIST="$dist" \
-        --build-arg BUILD_VERSION="$BUILD_VERSION" \
-        --build-arg FULL_VERSION="$full_ver" \
-        --build-arg ARCH="$build_arch" \
-        --build-arg ZIG_ARCH="$zig_arch" \
-        -f zero_Dockerfile; then
-        echo "❌ [$dist] Failed zero build"
-        return 1
-    fi
-    id="$(docker create "zig-stable-$dist-$build_arch")"
-    docker cp "$id:/zig-stable_$full_ver.deb" - > "./zig-stable_$full_ver.deb"
-    tar -xf "./zig-stable_$full_ver.deb"
 
     if ! docker build . -t "zig-stable-$dist-$build_arch" \
         --build-arg ZIG_VERSION="$ZIG_VERSION" \
@@ -129,7 +114,7 @@ build_architecture() {
 }
 
 if [ "$ARCH" = "all" ]; then
-    echo "🚀 Building zig $ZIG_VERSION-$BUILD_VERSION for all supported architectures..."
+    echo "🚀 Building zig-stable $ZIG_VERSION-$BUILD_VERSION for all supported architectures..."
     echo ""
 
     for build_arch in "amd64" "arm64" "armel" "riscv64" "ppc64el" "i386" "loong64" "s390x"; do
@@ -147,7 +132,7 @@ if [ "$ARCH" = "all" ]; then
 
     echo "🎉 All architectures built successfully!"
     echo "Generated packages:"
-    ls -la zig_*.deb zig-stable_*.deb zig-stable_*.deb
+    ls -la zig_*.deb zig-stable_*.deb
 else
     if ! build_architecture "$ARCH"; then
         exit 1

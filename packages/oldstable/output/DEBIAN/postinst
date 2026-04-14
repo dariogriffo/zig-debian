@@ -1,0 +1,10 @@
+#!/bin/sh
+set -e
+
+ZIG_BIN="/usr/lib/zig/ZIG_VERSION/zig"
+
+if [ -f "$ZIG_BIN" ]; then
+    update-alternatives --install /usr/bin/zig zig "$ZIG_BIN" 50
+fi
+
+exit 0

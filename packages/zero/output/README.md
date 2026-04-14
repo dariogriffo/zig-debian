@@ -1,0 +1,1 @@
+Deprecated, install zig-stable

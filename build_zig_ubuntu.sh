@@ -47,7 +47,7 @@ build_dist() {
     docker cp "$id:/zig_$full_ver.deb" - > "./zig_$full_ver.deb"
     tar -xf "./zig_$full_ver.deb"
 
-    if ! docker build . -f zero_Dockerfile.ubu -t "zig-ubuntu-zero-$dist-$build_arch" \
+    if ! docker build . -f zero_Dockerfile.ubu -t "zig-ubuntu-stable-$dist-$build_arch" \
         --build-arg ZIG_VERSION="$ZIG_VERSION" \
         --build-arg UBUNTU_DIST="$dist" \
         --build-arg BUILD_VERSION="$BUILD_VERSION" \
@@ -57,9 +57,23 @@ build_dist() {
         echo "❌ [$dist] Failed zero build"
         return 1
     fi
-    id="$(docker create "zig-ubuntu-zero-$dist-$build_arch")"
-    docker cp "$id:/zig-zero_$full_ver.deb" - > "./zig-zero_$full_ver.deb"
-    tar -xf "./zig-zero_$full_ver.deb"
+    id="$(docker create "zig-ubuntu-stable-$dist-$build_arch")"
+    docker cp "$id:/zig-stable_$full_ver.deb" - > "./zig-stable_$full_ver.deb"
+    tar -xf "./zig-stable_$full_ver.deb"
+
+    if ! docker build . -f stable_Dockerfile.ubu -t "zig-ubuntu-stable-$dist-$build_arch" \
+        --build-arg ZIG_VERSION="$ZIG_VERSION" \
+        --build-arg UBUNTU_DIST="$dist" \
+        --build-arg BUILD_VERSION="$BUILD_VERSION" \
+        --build-arg FULL_VERSION="$full_ver" \
+        --build-arg ARCH="$build_arch" \
+        --build-arg ZIG_ARCH="$zig_arch"; then
+        echo "❌ [$dist] Failed stable build"
+        return 1
+    fi
+    id="$(docker create "zig-ubuntu-stable-$dist-$build_arch")"
+    docker cp "$id:/zig-stable_$full_ver.deb" - > "./zig-stable_$full_ver.deb"
+    tar -xf "./zig-stable_$full_ver.deb"
 
     echo "  ✅ [$dist] Done"
 }
@@ -84,7 +98,8 @@ build_architecture() {
         echo "❌ Failed to download zig tarball for $build_arch"
         return 1
     fi
-    tar -xf "$tarball"
+    mkdir -p "build/${build_arch}"
+    tar -xf "$tarball" -C "build/${build_arch}"
     rm -f "$tarball"
 
     # Build all distros in parallel
@@ -99,7 +114,7 @@ build_architecture() {
         wait "$pid" || failed=1
     done
 
-    rm -rf "zig-${zig_arch}-linux-${ZIG_VERSION}"
+    rm -rf "build/${build_arch}"
 
     if [ $failed -ne 0 ]; then
         echo "❌ One or more distro builds failed for $build_arch"
@@ -129,7 +144,7 @@ if [ "$ARCH" = "all" ]; then
 
     echo "🎉 All architectures built successfully!"
     echo "Generated packages:"
-    ls -la zig_*.deb zig-zero_*.deb
+    ls -la zig_*.deb zig-stable_*.deb zig-stable_*.deb
 else
     if ! build_architecture "$ARCH"; then
         exit 1

@@ -1,0 +1,6 @@
+#!/bin/sh
+set -e
+
+# No action needed, prerm handles removal.
+
+exit 0

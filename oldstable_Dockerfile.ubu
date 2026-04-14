@@ -1,0 +1,49 @@
+FROM debian:trixie
+
+# Only arch-specific args before the expensive steps — keeps these layers cached across distros
+ARG ZIG_VERSION
+ARG ZIG_ARCH=x86_64
+ARG ARCH=amd64
+
+RUN DEBIAN_FRONTEND=noninteractive apt update && apt install -y build-essential pandoc python3-html2text
+
+# Pre-extracted on host into arch-specific folder to prevent Docker cache collisions across architectures
+COPY build/${ARCH}/zig-${ZIG_ARCH}-linux-${ZIG_VERSION} /opt/zig-${ZIG_ARCH}-linux-${ZIG_VERSION}
+
+RUN mkdir -p /output/usr/lib/zig/$ZIG_VERSION
+RUN cp "/opt/zig-$ZIG_ARCH-linux-$ZIG_VERSION/zig" /output/usr/lib/zig/$ZIG_VERSION/
+RUN cp -r "/opt/zig-$ZIG_ARCH-linux-$ZIG_VERSION/lib" /output/usr/lib/zig/$ZIG_VERSION/
+
+RUN mkdir -p /output/DEBIAN /output/usr/share/doc/zig-oldstable /output/usr/share/man/man1
+
+RUN html2markdown "/opt/zig-$ZIG_ARCH-linux-$ZIG_VERSION/doc/langref.html" > /output/usr/share/man/man1/zig.md
+RUN pandoc -s -t man -o /output/usr/share/man/man1/zig.1 /output/usr/share/man/man1/zig.md
+RUN rm /output/usr/share/man/man1/zig.md
+RUN gzip -n -9 /output/usr/share/man/man1/zig.1
+
+# Distro-specific args go here — cache is intentionally invalidated per distro below this line
+ARG UBUNTU_DIST
+ARG BUILD_VERSION
+ARG FULL_VERSION
+
+COPY packages/oldstable/output/DEBIAN/control /output/DEBIAN/
+COPY packages/oldstable/output/DEBIAN/postinst /output/DEBIAN/
+COPY packages/oldstable/output/DEBIAN/prerm /output/DEBIAN/
+COPY packages/oldstable/output/DEBIAN/postrm /output/DEBIAN/
+RUN chmod 755 /output/DEBIAN/postinst /output/DEBIAN/prerm /output/DEBIAN/postrm
+
+COPY packages/oldstable/output/changelog.Debian /output/usr/share/doc/zig-oldstable/changelog.Debian
+COPY packages/oldstable/output/copyright /output/usr/share/doc/zig-oldstable/
+
+RUN sed -i \
+    -e "s/DIST/$UBUNTU_DIST/g" \
+    -e "s/BUILD_VERSION/$BUILD_VERSION/g" \
+    -e "s/ZIG_VERSION/$ZIG_VERSION/g" \
+    /output/usr/share/doc/zig-oldstable/changelog.Debian \
+    /output/DEBIAN/control \
+    /output/DEBIAN/postinst \
+    /output/DEBIAN/prerm \
+    /output/DEBIAN/postrm
+RUN sed -i "s/Architecture: ARCH/Architecture: $ARCH/" /output/DEBIAN/control
+
+RUN dpkg-deb --build /output /zig-oldstable_${FULL_VERSION}.deb
