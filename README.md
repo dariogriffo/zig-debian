@@ -14,6 +14,36 @@
  👻 Zig is a general-purpose programming language and toolchain for maintaining robust, optimal, and reusable software.
 </p>
 
+## Package Changes
+
+The repository is powered by [reprepro](https://salsa.debian.org/brlink/reprepro), which is
+configured to keep only the **latest version** of each package. This means older builds are
+automatically replaced when a new release is published — you cannot `apt install zig=0.15.2`
+after 0.16.0 has shipped.
+
+To let users keep a previous release installed alongside the current one, the packages are named
+by stability tier rather than by version number:
+
+The package structure has been updated to track Zig releases more clearly:
+
+| Package | Description | Installs |
+|---|---|---|
+| `zig` | Meta-package, always points to the current stable release | `zig-stable` |
+| `zig-stable` | Current stable release (e.g. 0.16.0) | `/usr/lib/zig/<version>/zig` |
+| `zig-oldstable` | Previous stable release (e.g. 0.15.2) | `/usr/lib/zig/<version>/zig` |
+| `zig-0` | **Deprecated.** Install `zig-stable` instead. | — |
+
+`zig-stable` and `zig-oldstable` can be installed **side by side**. When both are present,
+`/usr/bin/zig` defaults to the stable version. Use `update-alternatives` to switch:
+
+```sh
+sudo update-alternatives --config zig
+```
+
+As new Zig releases ship, `zig-stable` advances to the new version and the previous stable
+becomes `zig-oldstable`. Installing `zig` (the meta-package) always keeps you on the current
+stable.
+
 # Zig for Debian
 
 This repository contains build scripts to produce the _unofficial_ Debian packages
@@ -36,7 +66,8 @@ install on Debian. If you're looking for the Zig source code, see
 curl -sS https://debian.griffo.io/EA0F721D231FDD3A0A17B9AC7808B4DD62C41256.asc | sudo gpg --dearmor --yes -o /etc/apt/trusted.gpg.d/debian.griffo.io.gpg
 echo "deb https://debian.griffo.io/apt $(lsb_release -sc 2>/dev/null) main" | sudo tee /etc/apt/sources.list.d/debian.griffo.io.list
 sudo apt update
-sudo apt install zig
+sudo apt install zig           # current stable
+sudo apt install zig-oldstable # previous stable (optional, installs alongside zig-stable)
 ```
 
 ### Manual Installation
