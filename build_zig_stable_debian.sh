@@ -26,6 +26,28 @@ get_zig_arch() {
     esac
 }
 
+build_man_page() {
+    local build_arch=$1
+    local zig_arch=$2
+
+    echo "  Generating man page for stable ($build_arch)..."
+    mkdir -p "build/man"
+
+    if ! docker build . -t "zig-docs-stable-$build_arch" \
+        --build-arg ZIG_VERSION="$ZIG_VERSION" \
+        --build-arg ZIG_ARCH="$zig_arch" \
+        --build-arg ARCH="$build_arch" \
+        --build-arg VARIANT="stable" \
+        -f docs_Dockerfile; then
+        echo "❌ Failed to build man page for stable"
+        return 1
+    fi
+    local id
+    id="$(docker create "zig-docs-stable-$build_arch")"
+    docker cp "$id:/man/zig-stable.1.gz" "build/man/zig-stable.1.gz"
+    docker rm "$id"
+}
+
 build_dist() {
     local dist=$1
     local build_arch=$2
@@ -90,6 +112,11 @@ build_architecture() {
     tar -xf "$tarball" -C "build/${build_arch}"
     rm -f "$tarball"
 
+    # Generate man page once before parallel distro builds
+    if ! build_man_page "$build_arch" "$zig_arch"; then
+        return 1
+    fi
+
     # Build all distros in parallel
     local pids=()
     for dist in "bookworm" "trixie" "forky" "sid"; do
@@ -103,6 +130,7 @@ build_architecture() {
     done
 
     rm -rf "build/${build_arch}"
+    rm -f "build/man/zig-stable.1.gz"
 
     if [ $failed -ne 0 ]; then
         echo "❌ One or more distro builds failed for $build_arch"

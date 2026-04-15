@@ -1,0 +1,16 @@
+FROM debian:trixie
+
+ARG ZIG_VERSION
+ARG ZIG_ARCH=x86_64
+ARG ARCH=amd64
+ARG VARIANT
+
+RUN DEBIAN_FRONTEND=noninteractive apt update && apt install -y pandoc python3-html2text
+
+COPY build/${ARCH}/zig-${ZIG_ARCH}-linux-${ZIG_VERSION} /opt/zig-${ZIG_ARCH}-linux-${ZIG_VERSION}
+
+RUN mkdir -p /man
+RUN html2markdown "/opt/zig-$ZIG_ARCH-linux-$ZIG_VERSION/doc/langref.html" > /man/zig.md
+RUN pandoc -s -t man -o /man/zig-${VARIANT}.1 /man/zig.md
+RUN rm /man/zig.md
+RUN gzip -n -9 /man/zig-${VARIANT}.1

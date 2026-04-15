@@ -5,7 +5,7 @@ ARG ZIG_VERSION
 ARG ZIG_ARCH=x86_64
 ARG ARCH=amd64
 
-RUN DEBIAN_FRONTEND=noninteractive apt update && apt install -y build-essential pandoc python3-html2text
+RUN DEBIAN_FRONTEND=noninteractive apt update && apt install -y build-essential
 
 # Pre-extracted on host into arch-specific folder to prevent Docker cache collisions across architectures
 COPY build/${ARCH}/zig-${ZIG_ARCH}-linux-${ZIG_VERSION} /opt/zig-${ZIG_ARCH}-linux-${ZIG_VERSION}
@@ -16,10 +16,8 @@ RUN cp -r "/opt/zig-$ZIG_ARCH-linux-$ZIG_VERSION/lib" /output/usr/lib/zig/$ZIG_V
 
 RUN mkdir -p /output/DEBIAN /output/usr/share/doc/zig-oldstable /output/usr/share/man/man1
 
-RUN html2markdown "/opt/zig-$ZIG_ARCH-linux-$ZIG_VERSION/doc/langref.html" > /output/usr/share/man/man1/zig.md
-RUN pandoc -s -t man -o /output/usr/share/man/man1/zig-oldstable.1 /output/usr/share/man/man1/zig.md
-RUN rm /output/usr/share/man/man1/zig.md
-RUN gzip -n -9 /output/usr/share/man/man1/zig-oldstable.1
+# Man page pre-generated once by docs_Dockerfile and placed in build/man/ by the build script
+COPY build/man/zig-oldstable.1.gz /output/usr/share/man/man1/
 
 # Distro-specific args go here — cache is intentionally invalidated per distro below this line
 ARG UBUNTU_DIST
