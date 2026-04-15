@@ -5,7 +5,7 @@ ARG ZIG_VERSION
 ARG ZIG_ARCH=x86_64
 ARG ARCH=amd64
 
-RUN DEBIAN_FRONTEND=noninteractive apt update && apt install -y build-essential
+RUN DEBIAN_FRONTEND=noninteractive
 
 # Pre-extracted on host into arch-specific folder to prevent Docker cache collisions across architectures
 COPY build/${ARCH}/zig-${ZIG_ARCH}-linux-${ZIG_VERSION} /opt/zig-${ZIG_ARCH}-linux-${ZIG_VERSION}
