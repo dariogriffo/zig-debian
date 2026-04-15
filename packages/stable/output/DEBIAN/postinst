@@ -2,9 +2,11 @@
 set -e
 
 ZIG_BIN="/usr/lib/zig/ZIG_VERSION/zig"
+ZIG_MAN="/usr/share/man/man1/zig-stable.1.gz"
 
 if [ -f "$ZIG_BIN" ]; then
-    update-alternatives --install /usr/bin/zig zig "$ZIG_BIN" 100
+    update-alternatives --install /usr/bin/zig zig "$ZIG_BIN" 100 \
+        --slave /usr/share/man/man1/zig.1.gz zig.1.gz "$ZIG_MAN"
 fi
 
 exit 0

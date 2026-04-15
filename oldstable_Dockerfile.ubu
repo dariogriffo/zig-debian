@@ -17,9 +17,9 @@ RUN cp -r "/opt/zig-$ZIG_ARCH-linux-$ZIG_VERSION/lib" /output/usr/lib/zig/$ZIG_V
 RUN mkdir -p /output/DEBIAN /output/usr/share/doc/zig-oldstable /output/usr/share/man/man1
 
 RUN html2markdown "/opt/zig-$ZIG_ARCH-linux-$ZIG_VERSION/doc/langref.html" > /output/usr/share/man/man1/zig.md
-RUN pandoc -s -t man -o /output/usr/share/man/man1/zig.1 /output/usr/share/man/man1/zig.md
+RUN pandoc -s -t man -o /output/usr/share/man/man1/zig-oldstable.1 /output/usr/share/man/man1/zig.md
 RUN rm /output/usr/share/man/man1/zig.md
-RUN gzip -n -9 /output/usr/share/man/man1/zig.1
+RUN gzip -n -9 /output/usr/share/man/man1/zig-oldstable.1
 
 # Distro-specific args go here — cache is intentionally invalidated per distro below this line
 ARG UBUNTU_DIST
