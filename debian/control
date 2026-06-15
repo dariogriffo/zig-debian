@@ -1,0 +1,26 @@
+Source: zig-stable
+Section: devel
+Priority: optional
+Maintainer: Dario Griffo <dariogriffo@gmail.com>
+Build-Depends: debhelper-compat (= 13), wget, ca-certificates
+Standards-Version: 4.6.2
+Homepage: https://codeberg.org/ziglang/zig
+Rules-Requires-Root: no
+
+Package: zig
+Architecture: all
+Depends: zig-stable
+Description: Meta package for the Zig programming language (stable)
+ This meta package depends on zig-stable and ensures the zig command
+ is available via update-alternatives.
+
+Package: zig-stable
+Architecture: amd64 arm64 armel riscv64 ppc64el i386 loong64 s390x
+Depends: ${misc:Depends}
+Description: Zig programming language compiler (stable release)
+ Zig is a general-purpose programming language and toolchain for maintaining
+ robust, optimal, and reusable software.
+ .
+ This package provides the stable release of the Zig compiler and standard
+ library, installed under /usr/lib/zig/{version}/ and made available as
+ /usr/bin/zig via update-alternatives.

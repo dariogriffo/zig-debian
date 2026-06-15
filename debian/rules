@@ -1,0 +1,46 @@
+#!/usr/bin/make -f
+DEB_HOST_ARCH ?= $(shell dpkg-architecture -qDEB_HOST_ARCH)
+PKG_VERSION := $(shell dpkg-parsechangelog -S Version | sed 's/[-~].*//')
+
+%:
+	dh $@
+
+override_dh_auto_configure:
+
+override_dh_auto_build:
+	@arch="$(DEB_HOST_ARCH)"; \
+	case "$$arch" in \
+		amd64)   ZIG_ARCH="x86_64" ;; \
+		arm64)   ZIG_ARCH="aarch64" ;; \
+		armel)   ZIG_ARCH="arm" ;; \
+		riscv64) ZIG_ARCH="riscv64" ;; \
+		ppc64el) ZIG_ARCH="powerpc64le" ;; \
+		i386)    ZIG_ARCH="x86" ;; \
+		loong64) ZIG_ARCH="loongarch64" ;; \
+		s390x)   ZIG_ARCH="s390x" ;; \
+		*) echo "Unsupported architecture: $$arch"; exit 1 ;; \
+	esac; \
+	RELEASE="zig-$$ZIG_ARCH-linux-$(PKG_VERSION)"; \
+	echo "Downloading $$RELEASE..."; \
+	wget -q "https://ziglang.org/download/$(PKG_VERSION)/$$RELEASE.tar.xz"; \
+	tar -xf "$$RELEASE.tar.xz"; \
+	rm -f "$$RELEASE.tar.xz"; \
+	echo "$$RELEASE" > .release_name
+
+override_dh_auto_install:
+	@RELEASE=$$(cat .release_name); \
+	mkdir -p debian/zig-stable/usr/lib/zig/$(PKG_VERSION)/; \
+	cp "$$RELEASE/zig" debian/zig-stable/usr/lib/zig/$(PKG_VERSION)/; \
+	cp -r "$$RELEASE/lib" debian/zig-stable/usr/lib/zig/$(PKG_VERSION)/
+
+override_dh_auto_test:
+
+override_dh_auto_clean:
+	@if [ -f .release_name ]; then \
+		RELEASE=$$(cat .release_name); \
+		rm -rf "$$RELEASE" .release_name || true; \
+	fi
+
+override_dh_strip:
+
+override_dh_shlibdeps:
