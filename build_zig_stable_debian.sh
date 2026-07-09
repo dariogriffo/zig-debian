@@ -52,7 +52,7 @@ build_dist() {
     local dist=$1
     local build_arch=$2
     local zig_arch=$3
-    local full_ver="$ZIG_VERSION-${BUILD_VERSION}+${dist}_${build_arch}"
+    local full_ver="$ZIG_VERSION-${BUILD_VERSION}~${dist}_${build_arch}"
 
     echo "  [$dist] Building zig-stable $full_ver"
 

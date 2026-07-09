@@ -3,7 +3,7 @@ Priority: optional
 Maintainer: Dario Griffo <dariogriffo@gmail.com>
 Homepage: https://ziglang.org/
 Package: zig-0
-Version: ZIG_VERSION-BUILD_VERSION+DIST
+Version: ZIG_VERSION-BUILD_VERSION~DIST
 Architecture: ARCH
 Conflicts: zig-stable
 Depends:
