@@ -9,6 +9,8 @@ ARG ARCH=amd64
 RUN mkdir -p /output/DEBIAN
 
 COPY packages/zig/output/DEBIAN/control /output/DEBIAN/
+COPY packages/zig/output/DEBIAN/postinst /output/DEBIAN/postinst
+RUN chmod 755 /output/DEBIAN/postinst
 
 RUN sed -i "s/DIST/$DEBIAN_DIST/" /output/DEBIAN/control
 RUN sed -i "s/BUILD_VERSION/$BUILD_VERSION/" /output/DEBIAN/control

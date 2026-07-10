@@ -10,6 +10,10 @@ ARG ZIG_VERSION
 RUN mkdir -p /output/DEBIAN /output/usr/share/doc/zig-0
 
 COPY packages/zero/output/DEBIAN/control /output/DEBIAN/
+COPY packages/zero/output/DEBIAN/postinst /output/DEBIAN/postinst
+COPY packages/zero/output/DEBIAN/prerm /output/DEBIAN/prerm
+COPY packages/zero/output/DEBIAN/postrm /output/DEBIAN/postrm
+RUN chmod 755 /output/DEBIAN/postinst /output/DEBIAN/prerm /output/DEBIAN/postrm
 COPY packages/zero/output/README.md /output/usr/share/doc/zig-0/
 
 RUN sed -i \
