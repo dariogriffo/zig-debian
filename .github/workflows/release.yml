@@ -42,6 +42,11 @@ jobs:
       - name: Checkout zig-debian
         uses: actions/checkout@v4
 
+      - name: Validate upstream license permits paid distribution
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: ./validate_license.sh ${{ inputs.zig_stable_version }}
+
       - name: Build zig stable (Debian)
         run: ./build_zig_stable_debian.sh ${{ inputs.zig_stable_version }} ${{ inputs.build_version }} ${{ inputs.architecture }}
 
