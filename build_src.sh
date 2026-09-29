@@ -32,9 +32,11 @@ build_source_package() {
     echo "  Building source package for ${dist} (${FULL_VERSION})..."
 
     # Clean and recreate build directory from orig tarball
+    # Codeberg archives extract as zig/, not zig-0.x.y/, so strip the top
+    # directory and extract straight into BUILD_DIR
     rm -rf "$BUILD_DIR"
-    tar -xf "$ORIG_TARBALL"
-    # GitHub archives extract as zig-0.x.y/ which matches our BUILD_DIR
+    mkdir "$BUILD_DIR"
+    tar -xf "$ORIG_TARBALL" -C "$BUILD_DIR" --strip-components=1
 
     # Copy Debian packaging directory
     cp -r debian "$BUILD_DIR/"
