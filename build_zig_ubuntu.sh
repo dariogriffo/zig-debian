@@ -131,7 +131,7 @@ build_architecture() {
 
     # Build all distros in parallel
     local pids=()
-    for dist in "jammy" "noble" "questing"; do
+    for dist in "jammy" "noble" "questing" "resolute"; do
         build_dist "$dist" "$build_arch" "$zig_arch" &
         pids+=($!)
     done
