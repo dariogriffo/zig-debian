@@ -19,8 +19,7 @@ RUN mkdir -p /output/DEBIAN /output/usr/share/doc/zig-stable /output/usr/share/m
 # Man page pre-generated once by docs_Dockerfile and placed in build/man/ by the build script
 COPY build/man/zig-stable.1.gz /output/usr/share/man/man1/
 
-# Distro-specific args go here — cache is intentionally invalidated per distro below this line
-ARG DEBIAN_DIST
+# Per-build args go here, after the expensive layers
 ARG BUILD_VERSION
 ARG FULL_VERSION
 
@@ -34,7 +33,6 @@ COPY packages/stable/output/changelog.Debian /output/usr/share/doc/zig-stable/ch
 COPY packages/stable/output/copyright /output/usr/share/doc/zig-stable/
 
 RUN sed -i \
-    -e "s/DIST/$DEBIAN_DIST/g" \
     -e "s/BUILD_VERSION/$BUILD_VERSION/g" \
     -e "s/ZIG_VERSION/$ZIG_VERSION/g" \
     /output/usr/share/doc/zig-stable/changelog.Debian \
@@ -44,4 +42,4 @@ RUN sed -i \
     /output/DEBIAN/postrm
 RUN sed -i "s/Architecture: ARCH/Architecture: $ARCH/" /output/DEBIAN/control
 
-RUN dpkg-deb --build /output /zig-stable_${FULL_VERSION}.deb
+RUN dpkg-deb -Zxz --build /output /zig-stable_${FULL_VERSION}.deb

@@ -48,44 +48,44 @@ build_man_page() {
     docker rm "$id"
 }
 
-build_dist() {
-    local dist=$1
-    local build_arch=$2
-    local zig_arch=$3
-    local full_ver="$ZIG_VERSION-${BUILD_VERSION}~${dist}_${build_arch}"
+# One set of packages for every suite: upstream's binaries are static, so
+# only the old ~<suite> version suffix ever differed. The fixed ~griffo keeps
+# it below the distro's own build of the same version.
+build_packages() {
+    local build_arch=$1
+    local zig_arch=$2
+    local full_ver="$ZIG_VERSION-${BUILD_VERSION}~griffo_${build_arch}"
 
-    echo "  [$dist] Building zig-stable $full_ver"
+    echo "  Building zig-stable $full_ver"
 
-    if ! docker build . -t "zig-$dist-$build_arch" \
+    if ! docker build . -t "zig-$build_arch" \
         --build-arg ZIG_VERSION="$ZIG_VERSION" \
-        --build-arg DEBIAN_DIST="$dist" \
         --build-arg BUILD_VERSION="$BUILD_VERSION" \
         --build-arg FULL_VERSION="$full_ver" \
         --build-arg ARCH="$build_arch" \
         -f meta_Dockerfile; then
-        echo "❌ [$dist] Failed meta build"
+        echo "❌ Failed meta build"
         return 1
     fi
-    id="$(docker create "zig-$dist-$build_arch")"
+    id="$(docker create "zig-$build_arch")"
     docker cp "$id:/zig_$full_ver.deb" - > "./zig_$full_ver.deb"
     tar -xf "./zig_$full_ver.deb"
 
-    if ! docker build . -t "zig-stable-$dist-$build_arch" \
+    if ! docker build . -t "zig-stable-$build_arch" \
         --build-arg ZIG_VERSION="$ZIG_VERSION" \
-        --build-arg DEBIAN_DIST="$dist" \
         --build-arg BUILD_VERSION="$BUILD_VERSION" \
         --build-arg FULL_VERSION="$full_ver" \
         --build-arg ARCH="$build_arch" \
         --build-arg ZIG_ARCH="$zig_arch" \
         -f stable_Dockerfile; then
-        echo "❌ [$dist] Failed stable build"
+        echo "❌ Failed stable build"
         return 1
     fi
-    id="$(docker create "zig-stable-$dist-$build_arch")"
+    id="$(docker create "zig-stable-$build_arch")"
     docker cp "$id:/zig-stable_$full_ver.deb" - > "./zig-stable_$full_ver.deb"
     tar -xf "./zig-stable_$full_ver.deb"
 
-    echo "  ✅ [$dist] Done"
+    echo "  ✅ Done"
 }
 
 build_architecture() {
@@ -101,8 +101,7 @@ build_architecture() {
 
     echo "Building for architecture: $build_arch using zig arch $zig_arch"
 
-    # Download and extract once on the host before parallel distro builds.
-    # Extraction happens here (not inside Docker) to avoid concurrent writes to the same folder name.
+    # Download and extract on the host; the Dockerfiles copy from build/<arch>/.
     local tarball="zig-${zig_arch}-linux-${ZIG_VERSION}.tar.xz"
     if ! wget -q "https://ziglang.org/download/${ZIG_VERSION}/${tarball}" -O "$tarball"; then
         echo "❌ Failed to download zig tarball for $build_arch"
@@ -112,28 +111,19 @@ build_architecture() {
     tar -xf "$tarball" -C "build/${build_arch}"
     rm -f "$tarball"
 
-    # Generate man page once before parallel distro builds
+    # Generate the man page, shared by every package of this architecture
     if ! build_man_page "$build_arch" "$zig_arch"; then
         return 1
     fi
 
-    # Build all distros in parallel
-    local pids=()
-    for dist in "bookworm" "trixie" "forky" "sid"; do
-        build_dist "$dist" "$build_arch" "$zig_arch" &
-        pids+=($!)
-    done
-
     local failed=0
-    for pid in "${pids[@]}"; do
-        wait "$pid" || failed=1
-    done
+    build_packages "$build_arch" "$zig_arch" || failed=1
 
     rm -rf "build/${build_arch}"
     rm -f "build/man/zig-stable.1.gz"
 
     if [ $failed -ne 0 ]; then
-        echo "❌ One or more distro builds failed for $build_arch"
+        echo "❌ Build failed for $build_arch"
         return 1
     fi
 

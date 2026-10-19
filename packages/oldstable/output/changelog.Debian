@@ -1,4 +1,4 @@
-zig (BUILD_VERSION) DIST; urgency=low
+zig (BUILD_VERSION) stable; urgency=low
 
   * https://github.com/ziglang/zig/releases
 

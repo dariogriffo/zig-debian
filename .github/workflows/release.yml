@@ -47,19 +47,12 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: ./validate_license.sh ${{ inputs.zig_stable_version }}
 
-      - name: Build zig stable (Debian)
+      - name: Build zig stable
         run: ./build_zig_stable_debian.sh ${{ inputs.zig_stable_version }} ${{ inputs.build_version }} ${{ inputs.architecture }}
 
-      - name: Build zig stable (Ubuntu)
-        run: ./build_zig_stable_ubuntu.sh ${{ inputs.zig_stable_version }} ${{ inputs.build_version }} ${{ inputs.architecture }}
-
-      - name: Build zig oldstable (Debian)
+      - name: Build zig oldstable
         if: ${{ inputs.zig_oldstable_version != '' }}
         run: ./build_zig_oldstable_debian.sh ${{ inputs.zig_oldstable_version }} ${{ inputs.build_version }} ${{ inputs.architecture }}
-
-      - name: Build zig oldstable (Ubuntu)
-        if: ${{ inputs.zig_oldstable_version != '' }}
-        run: ./build_zig_oldstable_ubuntu.sh ${{ inputs.zig_oldstable_version }} ${{ inputs.build_version }} ${{ inputs.architecture }}
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
