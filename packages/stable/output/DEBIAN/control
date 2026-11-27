@@ -6,5 +6,4 @@ Package: zig-stable
 Version: ZIG_VERSION-BUILD_VERSION~griffo
 Architecture: ARCH
 Conflicts: zig-0
-Depends:
 Description: Zig is a general-purpose programming language and toolchain for maintaining robust, optimal and reusable software. (stable release)
